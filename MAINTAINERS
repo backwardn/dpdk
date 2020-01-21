@@ -319,7 +319,7 @@ F: kernel/freebsd/nic_uio/
 Windows support
 M: Harini Ramakrishnan <harini.ramakrishnan@microsoft.com>
 M: Omar Cardona <ocardona@microsoft.com>
-M: Anand Rawat <anand.rawat@intel.com>
+M: Pallavi Kadam <pallavi.kadam@intel.com>
 M: Ranjit Menon <ranjit.menon@intel.com>
 F: kernel/windows/
 F: lib/librte_eal/windows/
@@ -371,7 +371,6 @@ F: devtools/test-null.sh
 F: doc/guides/prog_guide/switch_representation.rst
 
 Flow API
-M: Adrien Mazarguil <adrien.mazarguil@6wind.com>
 M: Ori Kam <orika@mellanox.com>
 T: git://dpdk.org/next/dpdk-next-net
 F: app/test-pmd/cmdline_flow.c
@@ -912,7 +911,7 @@ F: drivers/net/null/
 F: doc/guides/nics/features/null.ini
 
 Fail-safe PMD
-M: Gaetan Rivet <gaetan.rivet@6wind.com>
+M: Gaetan Rivet <grive@u256.net>
 F: drivers/net/failsafe/
 F: doc/guides/nics/fail_safe.rst
 F: doc/guides/nics/features/failsafe.ini
@@ -1391,7 +1390,7 @@ F: app/test/test_rcu*
 F: doc/guides/prog_guide/rcu_lib.rst
 
 PCI
-M: Gaetan Rivet <gaetan.rivet@6wind.com>
+M: Gaetan Rivet <grive@u256.net>
 F: lib/librte_pci/
 
 Power management
