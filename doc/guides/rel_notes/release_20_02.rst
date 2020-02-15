@@ -70,6 +70,12 @@ New Features
   Added the new ``ionic`` net driver for Pensando Ethernet Network Adapters.
   See the :doc:`../nics/ionic` NIC guide for more details on this new driver.
 
+* **Updated Broadcom bnxt driver**
+
+  Updated Broadcom bnxt driver with new features and improvements, including:
+
+  * Added support for MARK action.
+
 * **Updated Hisilicon hns3 driver.**
 
   Updated Hisilicon hns3 driver with new features and improvements, including:
@@ -84,6 +90,7 @@ New Features
   * Added support for MAC rules on specific port.
   * Added support for MAC/VLAN with TCP/UDP in switch rule.
   * Added support for 1/10G device.
+  * Added support for API rte_eth_tx_done_cleanup.
 
 * **Updated Intel iavf driver.**
 
@@ -91,6 +98,12 @@ New Features
 
   * Added more supported device IDs.
   * Updated virtual channel to latest AVF spec.
+
+* **Updated the Intel ixgbe driver.**
+
+  * Added support for API rte_eth_tx_done_cleanup.
+  * Added support setting VF MAC address by PF driver.
+  * Added support for setting the link to specific speed.
 
 * **Updated Intel i40e driver.**
 
@@ -104,7 +117,10 @@ New Features
   * Added LLDP support.
   * Extended PHY access AQ cmd.
   * Added support for reading LPI counters.
-  * Added support for Energy Efficient Ethernet
+  * Added support for Energy Efficient Ethernet.
+  * Added support for API rte_eth_tx_done_cleanup.
+  * Added support for VF multiple queues interrupt.
+  * Added support for setting the link to specific speed.
 
 * **Updated Mellanox mlx5 driver.**
 
@@ -112,11 +128,20 @@ New Features
 
   * Added support for RSS using L3/L4 source/destination only.
   * Added support for matching on GTP tunnel header item.
+  * Removed limitation of matching on tagged/untagged packets (when using DV flow engine).
 
 * **Add new vDPA PMD based on Mellanox devices**
 
   Added a new Mellanox vDPA  (``mlx5_vdpa``) PMD.
   See the :doc:`../vdpadevs/mlx5` guide for more details on this driver.
+
+* **Added support for virtio-PMD notification data.**
+
+  Added support for virtio-PMD notification data so that the driver
+  passes extra data (besides identifying the virtqueue) in its device
+  notifications, expanding the notifications to include the avail index and
+  avail wrap counter (When split ring is used, the avail wrap counter is not
+  included in the notification data).
 
 * **Updated testpmd application.**
 
