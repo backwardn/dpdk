@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <fcntl.h>
+#include <sys/eventfd.h>
 
 #include <rte_malloc.h>
 #include <rte_errno.h>
@@ -81,9 +82,8 @@ mlx5_vdpa_cq_destroy(struct mlx5_vdpa_cq *cq)
 static inline void
 mlx5_vdpa_cq_arm(struct mlx5_vdpa_priv *priv, struct mlx5_vdpa_cq *cq)
 {
-	const unsigned int cqe_mask = (1 << cq->log_desc_n) - 1;
 	uint32_t arm_sn = cq->arm_sn << MLX5_CQ_SQN_OFFSET;
-	uint32_t cq_ci = cq->cq_ci & MLX5_CI_MASK & cqe_mask;
+	uint32_t cq_ci = cq->cq_ci & MLX5_CI_MASK;
 	uint32_t doorbell_hi = arm_sn | MLX5_CQ_DBR_CMD_ALL | cq_ci;
 	uint64_t doorbell = ((uint64_t)doorbell_hi << 32) | cq->cq->id;
 	uint64_t db_be = rte_cpu_to_be_64(doorbell);
@@ -157,17 +157,9 @@ mlx5_vdpa_cq_create(struct mlx5_vdpa_priv *priv, uint16_t log_desc_n,
 		rte_errno = errno;
 		goto error;
 	}
-	/* Subscribe CQ event to the guest FD only if it is not in poll mode. */
-	if (callfd != -1) {
-		ret = mlx5_glue->devx_subscribe_devx_event_fd(priv->eventc,
-							      callfd,
-							      cq->cq->obj, 0);
-		if (ret) {
-			DRV_LOG(ERR, "Failed to subscribe CQE event fd.");
-			rte_errno = errno;
-			goto error;
-		}
-	}
+	cq->callfd = callfd;
+	/* Init CQ to ones to be in HW owner in the start. */
+	memset((void *)(uintptr_t)cq->umem_buf, 0xFF, attr.db_umem_offset);
 	/* First arming. */
 	mlx5_vdpa_cq_arm(priv, cq);
 	return 0;
@@ -182,15 +174,15 @@ mlx5_vdpa_cq_poll(struct mlx5_vdpa_priv *priv __rte_unused,
 {
 	struct mlx5_vdpa_event_qp *eqp =
 				container_of(cq, struct mlx5_vdpa_event_qp, cq);
-	const unsigned int cqe_size = 1 << cq->log_desc_n;
-	const unsigned int cqe_mask = cqe_size - 1;
+	const unsigned int cq_size = 1 << cq->log_desc_n;
+	const unsigned int cq_mask = cq_size - 1;
 	int ret;
 
 	do {
 		volatile struct mlx5_cqe *cqe = cq->cqes + (cq->cq_ci &
-							    cqe_mask);
+							    cq_mask);
 
-		ret = check_cqe(cqe, cqe_size, cq->cq_ci);
+		ret = check_cqe(cqe, cq_size, cq->cq_ci);
 		switch (ret) {
 		case MLX5_CQE_STATUS_ERR:
 			cq->errors++;
@@ -208,7 +200,7 @@ mlx5_vdpa_cq_poll(struct mlx5_vdpa_priv *priv __rte_unused,
 	cq->db_rec[0] = rte_cpu_to_be_32(cq->cq_ci);
 	rte_io_wmb();
 	/* Ring SW QP doorbell record. */
-	eqp->db_rec[0] = rte_cpu_to_be_32(cq->cq_ci + cqe_size);
+	eqp->db_rec[0] = rte_cpu_to_be_32(cq->cq_ci + cq_size);
 }
 
 static void
@@ -232,6 +224,9 @@ mlx5_vdpa_interrupt_handler(void *cb_arg)
 		rte_spinlock_lock(&cq->sl);
 		mlx5_vdpa_cq_poll(priv, cq);
 		mlx5_vdpa_cq_arm(priv, cq);
+		if (cq->callfd != -1)
+			/* Notify guest for descriptors consuming. */
+			eventfd_write(cq->callfd, (eventfd_t)1);
 		rte_spinlock_unlock(&cq->sl);
 		DRV_LOG(DEBUG, "CQ %d event: new cq_ci = %u.", cq->cq->id,
 			cq->cq_ci);
@@ -242,8 +237,14 @@ mlx5_vdpa_interrupt_handler(void *cb_arg)
 int
 mlx5_vdpa_cqe_event_setup(struct mlx5_vdpa_priv *priv)
 {
-	int flags = fcntl(priv->eventc->fd, F_GETFL);
-	int ret = fcntl(priv->eventc->fd, F_SETFL, flags | O_NONBLOCK);
+	int flags;
+	int ret;
+
+	if (!priv->eventc)
+		/* All virtqs are in poll mode. */
+		return 0;
+	flags = fcntl(priv->eventc->fd, F_GETFL);
+	ret = fcntl(priv->eventc->fd, F_SETFL, flags | O_NONBLOCK);
 	if (ret) {
 		DRV_LOG(ERR, "Failed to change event channel FD.");
 		rte_errno = errno;

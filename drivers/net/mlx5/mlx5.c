@@ -1724,7 +1724,7 @@ out:
  *   key is specified in devargs
  * - if DevX is enabled the inline mode is queried from the
  *   device (HCA attributes and NIC vport context if needed).
- * - otherwise L2 mode (18 bytes) is assumed for ConnectX-4/4LX
+ * - otherwise L2 mode (18 bytes) is assumed for ConnectX-4/4 Lx
  *   and none (0 bytes) for other NICs
  *
  * @param spawn
@@ -3528,6 +3528,10 @@ static const struct rte_pci_id mlx5_pci_id_map[] = {
 	{
 		RTE_PCI_DEVICE(PCI_VENDOR_ID_MELLANOX,
 				PCI_DEVICE_ID_MELLANOX_CONNECTX6DXVF)
+	},
+	{
+		RTE_PCI_DEVICE(PCI_VENDOR_ID_MELLANOX,
+				PCI_DEVICE_ID_MELLANOX_CONNECTX6DXBF)
 	},
 	{
 		.vendor_id = 0
