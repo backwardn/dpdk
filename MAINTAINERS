@@ -649,7 +649,8 @@ F: doc/guides/nics/hinic.rst
 F: doc/guides/nics/features/hinic.ini
 
 Intel e1000
-M: Wenzhuo Lu <wenzhuo.lu@intel.com>
+M: Wei Zhao <wei.zhao1@intel.com>
+M: Jeff Guo <jia.guo@intel.com>
 T: git://dpdk.org/next/dpdk-next-net-intel
 F: drivers/net/e1000/
 F: doc/guides/nics/e1000em.rst
@@ -658,8 +659,8 @@ F: doc/guides/nics/features/e1000.ini
 F: doc/guides/nics/features/igb*.ini
 
 Intel ixgbe
-M: Wenzhuo Lu <wenzhuo.lu@intel.com>
-M: Konstantin Ananyev <konstantin.ananyev@intel.com>
+M: Wei Zhao <wei.zhao1@intel.com>
+M: Jeff Guo <jia.guo@intel.com>
 T: git://dpdk.org/next/dpdk-next-net-intel
 F: drivers/net/ixgbe/
 F: doc/guides/nics/ixgbe.rst
@@ -668,7 +669,7 @@ F: doc/guides/nics/features/ixgbe*.ini
 
 Intel i40e
 M: Beilei Xing <beilei.xing@intel.com>
-M: Qi Zhang <qi.z.zhang@intel.com>
+M: Jeff Guo <jia.guo@intel.com>
 T: git://dpdk.org/next/dpdk-next-net-intel
 F: drivers/net/i40e/
 F: doc/guides/nics/i40e.rst
@@ -685,7 +686,7 @@ F: doc/guides/nics/features/fm10k*.ini
 
 Intel iavf
 M: Jingjing Wu <jingjing.wu@intel.com>
-M: Wenzhuo Lu <wenzhuo.lu@intel.com>
+M: Beilei Xing <beilei.xing@intel.com>
 T: git://dpdk.org/next/dpdk-next-net-intel
 F: drivers/net/iavf/
 F: drivers/common/iavf/
@@ -700,7 +701,8 @@ F: doc/guides/nics/ice.rst
 F: doc/guides/nics/features/ice.ini
 
 Intel igc
-M: Alvin Zhang <alvinx.zhang@intel.com>
+M: Wei Zhao <wei.zhao1@intel.com>
+M: Jeff Guo <jia.guo@intel.com>
 T: git://dpdk.org/next/dpdk-next-net-intel
 F: drivers/net/igc/
 F: doc/guides/nics/igc.rst
@@ -1498,7 +1500,7 @@ F: app/test/sample_packet_forward.h
 
 Driver testing tool
 M: Wenzhuo Lu <wenzhuo.lu@intel.com>
-M: Jingjing Wu <jingjing.wu@intel.com>
+M: Beilei Xing <beilei.xing@intel.com>
 M: Bernard Iremonger <bernard.iremonger@intel.com>
 T: git://dpdk.org/next/dpdk-next-net
 F: app/test-pmd/
