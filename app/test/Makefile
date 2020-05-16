@@ -141,6 +141,8 @@ SRCS-$(CONFIG_RTE_LIBRTE_LPM) += test_lpm_perf.c
 SRCS-$(CONFIG_RTE_LIBRTE_LPM) += test_lpm6.c
 SRCS-$(CONFIG_RTE_LIBRTE_LPM) += test_lpm6_perf.c
 
+SRCS-$(CONFIG_RTE_LIBRTE_TELEMETRY) += test_telemetry_json.c
+
 SRCS-y += test_debug.c
 SRCS-y += test_errno.c
 SRCS-y += test_tailq.c
@@ -228,6 +230,11 @@ SRCS-y += test_event_timer_adapter.c
 SRCS-y += test_event_crypto_adapter.c
 endif
 
+ifeq ($(CONFIG_RTE_LIBRTE_GRAPH), y)
+SRCS-y += test_graph.c
+SRCS-y += test_graph_perf.c
+endif
+
 ifeq ($(CONFIG_RTE_LIBRTE_RAWDEV),y)
 SRCS-y += test_rawdev.c
 endif
@@ -240,13 +247,15 @@ SRCS-$(CONFIG_RTE_LIBRTE_RCU) += test_rcu_qsbr.c test_rcu_qsbr_perf.c
 
 SRCS-$(CONFIG_RTE_LIBRTE_SECURITY) += test_security.c
 
-SRCS-$(CONFIG_RTE_LIBRTE_IPSEC) += test_ipsec.c
+SRCS-$(CONFIG_RTE_LIBRTE_IPSEC) += test_ipsec.c test_ipsec_perf.c
 SRCS-$(CONFIG_RTE_LIBRTE_IPSEC) += test_ipsec_sad.c
 ifeq ($(CONFIG_RTE_LIBRTE_IPSEC),y)
 LDLIBS += -lrte_ipsec
 endif
 
 CFLAGS += -O3
+# Strict-aliasing rules are violated by uint8_t[] to context size casts.
+CFLAGS += -fno-strict-aliasing
 CFLAGS += $(WERROR_FLAGS)
 
 LDLIBS += -lm

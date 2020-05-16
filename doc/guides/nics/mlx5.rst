@@ -99,6 +99,7 @@ Features
 - Support for multiple rte_flow groups.
 - Per packet no-inline hint flag to disable packet data copying into Tx descriptors.
 - Hardware LRO.
+- Hairpin.
 
 Limitations
 -----------
@@ -125,6 +126,24 @@ Limitations
         flow create 0 ingress pattern eth / ipv4 / end ...
 
   Will match any ipv4 packet (VLAN included).
+
+- When using DV flow engine (``dv_flow_en`` = 1), flow pattern without VLAN item
+  will match untagged packets only.
+  The flow rule::
+
+        flow create 0 ingress pattern eth / ipv4 / end ...
+
+  Will match untagged packets only.
+  The flow rule::
+
+        flow create 0 ingress pattern eth / vlan / ipv4 / end ...
+
+  Will match tagged packets only, with any VLAN ID value.
+  The flow rule::
+
+        flow create 0 ingress pattern eth / vlan vid is 3 / ipv4 / end ...
+
+  Will only match tagged packets with VLAN ID 3.
 
 - VLAN pop offload command:
 
@@ -161,6 +180,7 @@ Limitations
 
 - Match on GTP tunnel header item supports the following fields only:
 
+     - v_pt_rsv_flags: E flag, S flag, PN flag
      - msg_type
      - teid
 
@@ -256,6 +276,10 @@ Limitations
     TCP header (122B).
   - Rx queue with LRO offload enabled, receiving a non-LRO packet, can forward
     it with size limited to max LRO size, not to max RX packet length.
+  - LRO can be used with outer header of TCP packets of the standard format:
+        eth (with or without vlan) / ipv4 or ipv6 / tcp / payload
+
+    Other TCP packets (e.g. with MPLS label) received on Rx queue with LRO enabled, will be received with bad checksum.
 
 Statistics
 ----------
@@ -786,6 +810,21 @@ Run-time configuration
   If this parameter is not specified, by default PMD will set
   the smallest value supported by HW.
 
+- ``hp_buf_log_sz`` parameter [int]
+
+  The total data buffer size of a hairpin queue (logarithmic form), in bytes.
+  PMD will set the data buffer size to 2 ** ``hp_buf_log_sz``, both for RX & TX.
+  The capacity of the value is specified by the firmware and the initialization
+  will get a failure if it is out of scope.
+  The range of the value is from 11 to 19 right now, and the supported frame
+  size of a single packet for hairpin is from 512B to 128KB. It might change if
+  different firmware release is being used. By using a small value, it could
+  reduce memory consumption but not work with a large frame. If the value is
+  too large, the memory consumption will be high and some potential performance
+  degradation will be introduced.
+  By default, the PMD will set this value to 16, which means that 9KB jumbo
+  frames will be supported.
+
 .. _mlx5_firmware_config:
 
 Firmware configuration
@@ -1300,6 +1339,19 @@ Moreover in the flow engine domain the value zero is acceptable to match and
 set, and we should allow to specify zero values as rte_flow parameters for the
 META and MARK items and actions. In the same time zero mask has no meaning and
 should be rejected on validation stage.
+
+Notes for rte_flow
+------------------
+
+Flows are not cached in the driver.
+When stopping a device port, all the flows created on this port from the
+application will be flushed automatically in the background.
+After stopping the device port, all flows on this port become invalid and
+not represented in the system.
+All references to these flows held by the application should be discarded
+directly but neither destroyed nor flushed.
+
+The application should re-create the flows as required after the port restart.
 
 Notes for testpmd
 -----------------

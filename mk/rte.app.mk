@@ -49,13 +49,13 @@ _LDLIBS-$(CONFIG_RTE_LIBRTE_FIB)            += -lrte_fib
 _LDLIBS-$(CONFIG_RTE_LIBRTE_RIB)            += -lrte_rib
 _LDLIBS-$(CONFIG_RTE_LIBRTE_LPM)            += -lrte_lpm
 _LDLIBS-$(CONFIG_RTE_LIBRTE_ACL)            += -lrte_acl
-_LDLIBS-$(CONFIG_RTE_LIBRTE_TELEMETRY)      += --no-as-needed
-_LDLIBS-$(CONFIG_RTE_LIBRTE_TELEMETRY)      += --whole-archive
-_LDLIBS-$(CONFIG_RTE_LIBRTE_TELEMETRY)      += -lrte_telemetry -ljansson
-_LDLIBS-$(CONFIG_RTE_LIBRTE_TELEMETRY)      += --no-whole-archive
-_LDLIBS-$(CONFIG_RTE_LIBRTE_TELEMETRY)      += --as-needed
 _LDLIBS-$(CONFIG_RTE_LIBRTE_JOBSTATS)       += -lrte_jobstats
+_LDLIBS-$(CONFIG_RTE_LIBRTE_METRICS)        += --whole-archive
 _LDLIBS-$(CONFIG_RTE_LIBRTE_METRICS)        += -lrte_metrics
+ifeq ($(CONFIG_RTE_LIBRTE_TELEMETRY),y)
+_LDLIBS-$(CONFIG_RTE_LIBRTE_METRICS)        += -ljansson
+endif
+_LDLIBS-$(CONFIG_RTE_LIBRTE_METRICS)        += --no-whole-archive
 _LDLIBS-$(CONFIG_RTE_LIBRTE_BITRATE)        += -lrte_bitratestats
 _LDLIBS-$(CONFIG_RTE_LIBRTE_LATENCY_STATS)  += -lrte_latencystats
 _LDLIBS-$(CONFIG_RTE_LIBRTE_POWER)          += -lrte_power
@@ -77,6 +77,7 @@ _LDLIBS-$(CONFIG_RTE_LIBRTE_HASH)           += -lrte_hash
 _LDLIBS-$(CONFIG_RTE_LIBRTE_MEMBER)         += -lrte_member
 _LDLIBS-$(CONFIG_RTE_LIBRTE_VHOST)          += -lrte_vhost
 _LDLIBS-$(CONFIG_RTE_LIBRTE_KVARGS)         += -lrte_kvargs
+_LDLIBS-y                                   += -lrte_telemetry
 _LDLIBS-$(CONFIG_RTE_LIBRTE_MBUF)           += -lrte_mbuf
 _LDLIBS-$(CONFIG_RTE_LIBRTE_NET)            += -lrte_net
 _LDLIBS-$(CONFIG_RTE_LIBRTE_ETHER)          += -lrte_ethdev
@@ -98,6 +99,8 @@ _LDLIBS-$(CONFIG_RTE_LIBRTE_CMDLINE)        += -lrte_cmdline
 _LDLIBS-$(CONFIG_RTE_LIBRTE_REORDER)        += -lrte_reorder
 _LDLIBS-$(CONFIG_RTE_LIBRTE_SCHED)          += -lrte_sched
 _LDLIBS-$(CONFIG_RTE_LIBRTE_RCU)            += -lrte_rcu
+_LDLIBS-$(CONFIG_RTE_LIBRTE_GRAPH)          += -lrte_graph
+_LDLIBS-$(CONFIG_RTE_LIBRTE_NODE)           += -lrte_node
 
 ifeq ($(CONFIG_RTE_EXEC_ENV_LINUX),y)
 _LDLIBS-$(CONFIG_RTE_LIBRTE_KNI)            += -lrte_kni
@@ -207,7 +210,9 @@ ifeq ($(CONFIG_RTE_IBVERBS_LINK_DLOPEN),y)
 _LDLIBS-y                                   += -ldl
 else ifeq ($(CONFIG_RTE_IBVERBS_LINK_STATIC),y)
 LIBS_IBVERBS_STATIC = $(shell $(RTE_SDK)/buildtools/options-ibverbs-static.sh)
+_LDLIBS-y                                   += --no-whole-archive
 _LDLIBS-y                                   += $(LIBS_IBVERBS_STATIC)
+_LDLIBS-y                                   += --whole-archive
 else
 ifeq ($(findstring y,$(CONFIG_RTE_LIBRTE_MLX5_PMD)$(CONFIG_RTE_LIBRTE_MLX5_VDPA_PMD)),y)
 _LDLIBS-y                                   += -libverbs -lmlx5

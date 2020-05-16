@@ -51,6 +51,8 @@ test_sources = files('commands.c',
 	'test_fib6_perf.c',
 	'test_func_reentrancy.c',
 	'test_flow_classify.c',
+	'test_graph.c',
+	'test_graph_perf.c',
 	'test_hash.c',
 	'test_hash_functions.c',
 	'test_hash_multiwriter.c',
@@ -61,10 +63,9 @@ test_sources = files('commands.c',
         'test_ipfrag.c',
 	'test_ipsec.c',
 	'test_ipsec_sad.c',
+	'test_ipsec_perf.c',
 	'test_kni.c',
 	'test_kvargs.c',
-	'test_link_bonding.c',
-	'test_link_bonding_rssconf.c',
 	'test_logs.c',
 	'test_lpm.c',
 	'test_lpm6.c',
@@ -136,6 +137,8 @@ test_sources = files('commands.c',
 )
 
 test_deps = ['acl',
+	'bus_pci',
+	'bus_vdev',
 	'bitratestats',
 	'bpf',
 	'cfgfile',
@@ -147,12 +150,14 @@ test_deps = ['acl',
 	'eventdev',
 	'fib',
 	'flow_classify',
+	'graph',
 	'hash',
 	'ipsec',
 	'latencystats',
 	'lpm',
 	'member',
 	'metrics',
+	'node',
 	'pipeline',
 	'port',
 	'rawdev',
@@ -287,6 +292,7 @@ perf_test_names = [
         'hash_readwrite_perf_autotest',
         'hash_readwrite_lf_perf_autotest',
         'trace_perf_autotest',
+	'ipsec_perf_autotest',
 ]
 
 driver_test_names = [
@@ -306,8 +312,6 @@ driver_test_names = [
         'cryptodev_sw_zuc_autotest',
         'eventdev_selftest_octeontx',
         'eventdev_selftest_sw',
-        'link_bonding_autotest',
-        'link_bonding_rssconf_autotest',
         'rawdev_autotest',
 ]
 
@@ -335,11 +339,17 @@ endif
 if dpdk_conf.has('RTE_LIBRTE_SKELETON_EVENTDEV_PMD')
 	test_deps += 'pmd_skeleton_event'
 endif
+if dpdk_conf.has('RTE_LIBRTE_TELEMETRY')
+	test_sources += 'test_telemetry_json.c'
+	fast_tests += [['telemetry_json_autotest', true]]
+endif
 
 # The following linkages of drivers are required because
 # they are used via a driver-specific API.
 if dpdk_conf.has('RTE_LIBRTE_BOND_PMD')
 	test_deps += 'pmd_bond'
+	test_sources += ['test_link_bonding.c', 'test_link_bonding_rssconf.c']
+	driver_test_names += ['link_bonding_autotest', 'link_bonding_rssconf_autotest']
 endif
 if dpdk_conf.has('RTE_LIBRTE_RING_PMD')
 	test_deps += 'pmd_ring'
@@ -376,6 +386,8 @@ endif
 
 # specify -D_GNU_SOURCE unconditionally
 cflags += '-D_GNU_SOURCE'
+# Strict-aliasing rules are violated by uint8_t[] to context size casts.
+cflags += '-fno-strict-aliasing'
 
 test_dep_objs = []
 if dpdk_conf.has('RTE_LIBRTE_COMPRESSDEV')
@@ -399,13 +411,15 @@ endforeach
 test_dep_objs += cc.find_library('execinfo', required: false)
 
 link_libs = []
+link_nodes = []
 if get_option('default_library') == 'static'
 	link_libs = dpdk_drivers
+	link_nodes = dpdk_graph_nodes
 endif
 
 dpdk_test = executable('dpdk-test',
 	test_sources,
-	link_whole: link_libs,
+	link_whole: link_libs + link_nodes,
 	dependencies: test_dep_objs,
 	c_args: cflags,
 	install_rpath: driver_install_path,

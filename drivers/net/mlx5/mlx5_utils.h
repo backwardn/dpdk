@@ -21,16 +21,6 @@
 #include "mlx5_defs.h"
 
 
-/*
- * Compilation workaround for PPC64 when AltiVec is fully enabled, e.g. std=c11.
- * Otherwise there would be a type conflict between stdbool and altivec.
- */
-#if defined(__PPC64__) && !defined(__APPLE_ALTIVEC__)
-#undef bool
-/* redefine as in stdbool.h */
-#define bool _Bool
-#endif
-
 /* Convert a bit number to the corresponding 64-bit mask */
 #define MLX5_BITSHIFT(v) (UINT64_C(1) << (v))
 
@@ -115,7 +105,7 @@ struct mlx5_indexed_trunk {
 	uint32_t next; /* Next free trunk in free list. */
 	uint32_t free; /* Free entries available */
 	struct rte_bitmap *bmp;
-	uint8_t data[] __rte_cache_min_aligned; /* Entry data start. */
+	uint8_t data[] __rte_cache_aligned; /* Entry data start. */
 };
 
 struct mlx5_indexed_pool {

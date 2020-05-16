@@ -93,6 +93,8 @@ New Features
   * Added new query: ``rte_flow_get_aged_flows`` to get the aged-out flows
     contexts from the port.
 
+* **ethdev: Added a new value to link speed for 200Gbps**
+
 * **Updated Amazon ena driver.**
 
   Updated ena PMD with new features and improvements, including:
@@ -139,8 +141,17 @@ New Features
 
   * Added support for matching on IPv4 Time To Live and IPv6 Hop Limit.
   * Added support for creating Relaxed Ordering Memory Regions.
+  * Added support for configuring Hairpin queue data buffer size.
   * Added support for jumbo frame size (9K MTU) in Multi-Packet RQ mode.
+  * Removed flow rules caching for memory saving and compliance with ethdev API.
   * Optimized the memory consumption of flow.
+  * Added support for flow aging based on hardware counter.
+  * Added support for flow pattern with wildcard VLAN item (without VID value).
+  * Updated support for matching on GTP header, added match on GTP flags.
+
+* **Added Chacha20-Poly1305 algorithm to Cryptodev API.**
+
+  Chacha20-Poly1305 AEAD algorithm can now be supported in Cryptodev.
 
 * **Updated the AESNI MB crypto PMD.**
 
@@ -149,6 +160,21 @@ New Features
   * Added support for synchronous Crypto burst API.
 
 * **Updated the AESNI GCM crypto PMD.**
+
+  * Added support for intel-ipsec-mb version 0.54.
+
+* **Updated the ZUC crypto PMD.**
+
+  * Added support for intel-ipsec-mb version 0.54.
+  * Updated the PMD to support Multi-buffer ZUC-EIA3,
+    improving performance significantly, when using
+    intel-ipsec-mb version 0.54
+
+* **Updated the SNOW3G crypto PMD.**
+
+  * Added support for intel-ipsec-mb version 0.54.
+
+* **Updated the KASUMI crypto PMD.**
 
   * Added support for intel-ipsec-mb version 0.54.
 
@@ -176,6 +202,12 @@ New Features
 
   Added support for plain SHA-1, SHA-224, SHA-256, SHA-384 and SHA-512 hashes
   to QAT PMD.
+
+* **Added AES-GCM/GMAC J0 support to QAT PMD.**
+
+  Added support for AES-GCM/GMAC J0 to Intel QuickAssist Technology PMD. User can
+  use this feature by passing zero length IV in appropriate xform. For more
+  info please refer to rte_crypto_sym.h J0 comments.
 
 * **Added QAT intermediate buffer too small handling in QAT compression PMD.**
 
@@ -212,6 +244,58 @@ New Features
   * Added IPsec inbound load-distribution support for ipsec-secgw application
     using NIC load distribution feature(Flow Director).
 
+* **Updated Telemetry Library.**
+
+  The updated Telemetry library has many improvements on the original version
+  to make it more accessible and scalable:
+
+  * It enables DPDK libraries and applications provide their own specific
+    telemetry information, rather than being limited to what could be reported
+    through the metrics library.
+
+  * It is no longer dependent on the external Jansson library, which allows
+    Telemetry be enabled by default.
+
+  * The socket handling has been simplified making it easier for clients to
+    connect and retrieve information.
+
+* **Added rte_graph library.**
+
+  Graph architecture abstracts the data processing functions as a ``node`` and
+  ``links`` them together to create a complex ``graph`` to enable reusable/modular
+  data processing functions. The graph library provides API to enable graph
+  framework operations such as create, lookup, dump and destroy on graph and node
+  operations such as clone, edge update, and edge shrink, etc.
+  The API also allows to create the stats cluster to monitor per graph and per node stats.
+
+* **Added rte_node library which consists of a set of packet processing nodes.**
+
+  The rte_node library that consists of nodes used by rte_graph library. Each
+  node performs a specific packet processing function based on application
+  configuration. The following nodes are added:
+
+  * Null node: Skeleton node that defines the general structure of a node.
+  * Ethernet device node: Consists of ethernet Rx/Tx nodes as well as ethernet
+    control APIs.
+  * IPv4 lookup node: Consists of ipv4 extract and lpm lookup node. Routes can
+    be configured by the application through ``rte_node_ip4_route_add`` function.
+  * IPv4 rewrite node: Consists of ipv4 and ethernet header rewrite functionality
+    that can be configured through ``rte_node_ip4_rewrite_add`` function.
+  * Packet drop node: Frees the packets received to their respective mempool.
+
+* **Added new l3fwd-graph sample application.**
+
+  Added an example application ``l3fwd-graph``. It demonstrates the usage of graph
+  library and node library for packet processing. In addition to the library usage
+  demonstration, this application can use for performance comparison with existing
+  ``l3fwd`` (The static code without any nodes) with the modular ``l3fwd-graph``
+  approach.
+
+* **Updated testpmd application.**
+
+  * Added a new cmdline option ``--rx-mq-mode`` which can be used to test PMD's
+    behaviour on handling Rx mq mode.
+
 
 Removed Items
 -------------
@@ -240,6 +324,10 @@ API Changes
    This section is a comment. Do not overwrite or remove it.
    Also, make sure to start the actual text at the margin.
    =========================================================
+
+* mempool: The API of ``rte_mempool_populate_iova()`` and
+  ``rte_mempool_populate_virt()`` changed to return 0 instead of -EINVAL
+  when there is not enough room to store one object.
 
 
 ABI Changes

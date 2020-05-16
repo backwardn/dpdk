@@ -56,8 +56,10 @@ Programmer's Guide
     packet_framework
     vhost_lib
     metrics_lib
+    telemetry_lib
     bpf_lib
     ipsec_lib
+    graph_lib
     source_org
     dev_kit_build_system
     dev_kit_root_make_help

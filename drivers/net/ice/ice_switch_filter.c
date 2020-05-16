@@ -1267,6 +1267,7 @@ ice_switch_parse_dcf_action(const struct rte_flow_action *actions,
 	}
 
 	rule_info->sw_act.src = rule_info->sw_act.vsi_handle;
+	rule_info->sw_act.flag = ICE_FLTR_RX;
 	rule_info->rx = 1;
 	rule_info->priority = 5;
 
@@ -1296,6 +1297,8 @@ ice_switch_parse_action(struct ice_pf *pf,
 		switch (action_type) {
 		case RTE_FLOW_ACTION_TYPE_RSS:
 			act_qgrop = action->conf;
+			if (act_qgrop->queue_num <= 1)
+				goto error;
 			rule_info->sw_act.fltr_act =
 				ICE_FWD_TO_QGRP;
 			rule_info->sw_act.fwd_id.q_id =
@@ -1500,6 +1503,7 @@ ice_switch_parse_pattern_action(struct ice_adapter *ad,
 		goto error;
 	}
 
+	memset(&rule_info, 0, sizeof(rule_info));
 	rule_info.tun_type = tun_type;
 
 	ret = ice_switch_check_action(actions, error);
