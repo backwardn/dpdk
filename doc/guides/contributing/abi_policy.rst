@@ -39,7 +39,8 @@ General Guidelines
    releases, over a number of release cycles. This change begins with
    maintaining ABI stability through one year of DPDK releases starting from
    DPDK 19.11. This policy will be reviewed in 2020, with intention of
-   lengthening the stability period.
+   lengthening the stability period. Additional implementation detail can be
+   found in the :ref:`release notes <20_02_abi_changes>`.
 
 What is an ABI?
 ~~~~~~~~~~~~~~~
@@ -158,6 +159,11 @@ The requirements for changing the ABI are:
    - No backward or forward compatibility is offered for API changes marked as
      ``experimental``, as described in the section on :ref:`Experimental APIs
      and Libraries <experimental_apis>`.
+
+   - In situations in which an ``experimental`` symbol has been stable for some
+     time. When promoting the symbol to become part of the next ABI version, the
+     maintainer may choose to provide an alias to the ``experimental`` tag, so
+     as not to break consuming applications.
 
 #. If a newly proposed API functionally replaces an existing one, when the new
    API becomes non-experimental, then the old one is marked with
@@ -316,6 +322,11 @@ For removing the experimental tag associated with an API, deprecation notice is
 not required. Though, an API should remain in experimental state for at least
 one release. Thereafter, the normal process of posting patch for review to
 mailing list can be followed.
+
+After the experimental tag has been formally removed, a tree/sub-tree maintainer
+may choose to offer an alias to the experimental tag so as not to break
+applications using the symbol. The alias is then dropped at the declaration of
+next major ABI version.
 
 Libraries
 ~~~~~~~~~
