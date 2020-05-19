@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) 2001-2020
+ * Copyright(c) 2001-2020 Intel Corporation
  */
 
 #ifndef _ICE_FLOW_H_
@@ -160,6 +160,7 @@ enum ice_flow_seg_hdr {
  * ICE_FLOW_SEG_HDR_GTPU_UP           1              1
  */
 #define ICE_FLOW_SEG_HDR_GTPU (ICE_FLOW_SEG_HDR_GTPU_IP | \
+			       ICE_FLOW_SEG_HDR_GTPU_EH | \
 			       ICE_FLOW_SEG_HDR_GTPU_DWN | \
 			       ICE_FLOW_SEG_HDR_GTPU_UP)
 #define ICE_FLOW_SEG_HDR_PFCP (ICE_FLOW_SEG_HDR_PFCP_NODE | \
