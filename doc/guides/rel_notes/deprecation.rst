@@ -38,12 +38,25 @@ Deprecation Notices
   remove it from the externally visible ABI and allow it to be updated in the
   future.
 
+* rte_atomicNN_xxx: These APIs do not take memory order parameter. This does
+  not allow for writing optimized code for all the CPU architectures supported
+  in DPDK. DPDK will adopt C11 atomic operations semantics and provide wrappers
+  using C11 atomic built-ins. These wrappers must be used for patches that
+  need to be merged in 20.08 onwards. This change will not introduce any
+  performance degradation.
+
+* rte_smp_*mb: These APIs provide full barrier functionality. However, many
+  use cases do not require full barriers. To support such use cases, DPDK will
+  adopt C11 barrier semantics and provide wrappers using C11 atomic built-ins.
+  These wrappers must be used for patches that need to be merged in 20.08
+  onwards. This change will not introduce any performance degradation.
+
 * igb_uio: In the view of reducing the kernel dependency from the main tree,
   as a first step, the Technical Board decided to move ``igb_uio``
   kernel module to the dpdk-kmods repository in the /linux/igb_uio/ directory
   in 20.11.
   Minutes of Technical Board Meeting of `2019-11-06
-  <http://mails.dpdk.org/archives/dev/2019-November/151763.html>`_.
+  <https://mails.dpdk.org/archives/dev/2019-November/151763.html>`_.
 
 * lib: will fix extending some enum/define breaking the ABI. There are multiple
   samples in DPDK that enum/define terminated with a ``.*MAX.*`` value which is
@@ -81,6 +94,18 @@ Deprecation Notices
   thereby improve Rx performance if application wishes do so.
   In 19.11 PMDs will still update the field even when the offload is not
   enabled.
+
+* ethdev: ``rx_descriptor_done`` dev_ops and ``rte_eth_rx_descriptor_done``
+  will be deprecated in 20.11 and will be removed in 21.11.
+  Existing ``rte_eth_rx_descriptor_status`` and ``rte_eth_tx_descriptor_status``
+  APIs can be used as replacement.
+
+* traffic manager: All traffic manager API's in ``rte_tm.h`` were mistakenly made
+  ABI stable in the v19.11 release. The TM maintainer and other contributors have
+  agreed to keep the TM APIs as experimental in expectation of additional spec
+  improvements. Therefore, all APIs in ``rte_tm.h`` will be marked back as
+  experimental in v20.11 DPDK release. For more details, please see `the thread
+  <https://mails.dpdk.org/archives/dev/2020-April/164970.html>`_.
 
 * cryptodev: support for using IV with all sizes is added, J0 still can
   be used but only when IV length in following structs ``rte_crypto_auth_xform``,
