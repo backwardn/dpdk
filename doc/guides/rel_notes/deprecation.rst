@@ -23,17 +23,6 @@ Deprecation Notices
 * eal: The function ``rte_eal_remote_launch`` will return new error codes
   after read or write error on the pipe, instead of calling ``rte_panic``.
 
-* eal: both declaring and identifying devices will be streamlined in v18.11.
-  New functions will appear to query a specific port from buses, classes of
-  device and device drivers. Device declaration will be made coherent with the
-  new scheme of device identification.
-  As such, ``rte_devargs`` device representation will change.
-
-  - The enum ``rte_devtype`` was used to identify a bus and will disappear.
-  - Functions previously deprecated will change or disappear:
-
-    + ``rte_eal_devargs_type_count``
-
 * eal: The ``rte_logs`` struct and global symbol will be made private to
   remove it from the externally visible ABI and allow it to be updated in the
   future.
@@ -71,6 +60,15 @@ Deprecation Notices
   Need to identify this kind of usages and fix in 20.11, otherwise this blocks
   us extending existing enum/define.
   One solution can be using a fixed size array instead of ``.*MAX.*`` value.
+
+* ethdev: Split the ``struct eth_dev_ops`` struct to hide it as much as possible
+  will be done in 20.11.
+  Currently the ``struct eth_dev_ops`` struct is accessible by the application
+  because some inline functions, like ``rte_eth_tx_descriptor_status()``,
+  access the struct directly.
+  The struct will be separate in two, the ops used by inline functions will be
+  moved next to Rx/Tx burst functions, rest of the ``struct eth_dev_ops`` struct
+  will be moved to header file for drivers to hide it from applications.
 
 * ethdev: the legacy filter API, including
   ``rte_eth_dev_filter_supported()``, ``rte_eth_dev_filter_ctrl()`` as well
@@ -132,3 +130,11 @@ Deprecation Notices
   Python 2 support will be completely removed in 20.11.
   In 20.08, explicit deprecation warnings will be displayed when running
   scripts with Python 2.
+
+* pci: Remove ``RTE_KDRV_NONE`` based device driver probing.
+  In order to optimize the DPDK PCI enumeration management, ``RTE_KDRV_NONE``
+  based device driver probing will be removed in v20.08.
+  The legacy virtio is the only consumer of ``RTE_KDRV_NONE`` based device
+  driver probe scheme. The legacy virtio support will be available through
+  the existing VFIO/UIO based kernel driver scheme.
+  More details at https://patches.dpdk.org/patch/69351/
