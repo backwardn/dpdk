@@ -285,7 +285,7 @@ static void
 flow_dv_shared_lock(struct rte_eth_dev *dev)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 
 	if (sh->dv_refcnt > 1) {
 		int ret;
@@ -300,7 +300,7 @@ static void
 flow_dv_shared_unlock(struct rte_eth_dev *dev)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 
 	if (sh->dv_refcnt > 1) {
 		int ret;
@@ -1639,18 +1639,6 @@ flow_dv_validate_item_port_id(struct rte_eth_dev *dev,
 	return 0;
 }
 
-/*
- * GTP flags are contained in 1 byte of the format:
- * -------------------------------------------
- * | bit   | 0 - 2   | 3  | 4   | 5 | 6 | 7  |
- * |-----------------------------------------|
- * | value | Version | PT | Res | E | S | PN |
- * -------------------------------------------
- *
- * Matching is supported only for GTP flags E, S, PN.
- */
-#define MLX5_GTP_FLAGS_MASK	0x07
-
 /**
  * Validate VLAN item.
  *
@@ -1723,6 +1711,18 @@ flow_dv_validate_item_vlan(const struct rte_flow_item *item,
 	}
 	return 0;
 }
+
+/*
+ * GTP flags are contained in 1 byte of the format:
+ * -------------------------------------------
+ * | bit   | 0 - 2   | 3  | 4   | 5 | 6 | 7  |
+ * |-----------------------------------------|
+ * | value | Version | PT | Res | E | S | PN |
+ * -------------------------------------------
+ *
+ * Matching is supported only for GTP flags E, S, PN.
+ */
+#define MLX5_GTP_FLAGS_MASK	0x07
 
 /**
  * Validate GTP item.
@@ -2560,7 +2560,7 @@ flow_dv_encap_decap_resource_register
 			 struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_encap_decap_resource *cache_resource;
 	struct mlx5dv_dr_domain *domain;
 	uint32_t idx = 0;
@@ -2697,7 +2697,7 @@ flow_dv_port_id_action_resource_register
 			 struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_port_id_action_resource *cache_resource;
 	uint32_t idx = 0;
 
@@ -2725,7 +2725,7 @@ flow_dv_port_id_action_resource_register
 	*cache_resource = *resource;
 	/*
 	 * Depending on rdma_core version the glue routine calls
-	 * either mlx5dv_dr_action_create_dest_ib_port(domain, ibv_port)
+	 * either mlx5dv_dr_action_create_dest_ib_port(domain, dev_port)
 	 * or mlx5dv_dr_action_create_dest_vport(domain, vport_id).
 	 */
 	cache_resource->action =
@@ -2772,7 +2772,7 @@ flow_dv_push_vlan_action_resource_register
 			struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_push_vlan_action_resource *cache_resource;
 	struct mlx5dv_dr_domain *domain;
 	uint32_t idx = 0;
@@ -3946,7 +3946,7 @@ flow_dv_modify_hdr_resource_register
 			 struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_modify_hdr_resource *cache_resource;
 	struct mlx5dv_dr_domain *ns;
 	uint32_t actions_len;
@@ -4104,7 +4104,7 @@ static struct mlx5_counter_stats_mem_mng *
 flow_dv_create_counter_stat_mem_mng(struct rte_eth_dev *dev, int raws_n)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_devx_mkey_attr mkey_attr;
 	struct mlx5_counter_stats_mem_mng *mem_mng;
 	volatile struct flow_counter_stats *raw_data;
@@ -4130,7 +4130,7 @@ flow_dv_create_counter_stat_mem_mng(struct rte_eth_dev *dev, int raws_n)
 	}
 	mkey_attr.addr = (uintptr_t)mem;
 	mkey_attr.size = size;
-	mkey_attr.umem_id = mem_mng->umem->umem_id;
+	mkey_attr.umem_id = mlx5_os_get_umem_id(mem_mng->umem);
 	mkey_attr.pd = sh->pdn;
 	mkey_attr.log_entity_size = 0;
 	mkey_attr.pg_access = 0;
@@ -7206,7 +7206,7 @@ flow_dv_tbl_resource_get(struct rte_eth_dev *dev,
 			 struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_tbl_resource *tbl;
 	union mlx5_flow_tbl_key table_key = {
 		{
@@ -7291,7 +7291,7 @@ flow_dv_tbl_resource_release(struct rte_eth_dev *dev,
 			     struct mlx5_flow_tbl_resource *tbl)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_tbl_data_entry *tbl_data =
 		container_of(tbl, struct mlx5_flow_tbl_data_entry, tbl);
 
@@ -7336,7 +7336,7 @@ flow_dv_matcher_register(struct rte_eth_dev *dev,
 			 struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_matcher *cache_matcher;
 	struct mlx5dv_flow_matcher_attr dv_attr = {
 		.type = IBV_FLOW_ATTR_NORMAL,
@@ -7435,7 +7435,7 @@ flow_dv_tag_resource_register
 			 struct rte_flow_error *error)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_tag_resource *cache_resource;
 	struct mlx5_hlist_entry *entry;
 
@@ -7499,7 +7499,7 @@ flow_dv_tag_release(struct rte_eth_dev *dev,
 		    uint32_t tag_idx)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_tag_resource *tag;
 
 	tag = mlx5_ipool_get(priv->sh->ipool[MLX5_IPOOL_TAG], tag_idx);
@@ -7557,7 +7557,7 @@ flow_dv_translate_action_port_id(struct rte_eth_dev *dev,
 	 * This parameter is transferred to
 	 * mlx5dv_dr_action_create_dest_ib_port().
 	 */
-	*dst_port_id = priv->ibv_port;
+	*dst_port_id = priv->dev_port;
 #else
 	/*
 	 * Legacy mode, no LAG configurations is supported.
@@ -9147,7 +9147,7 @@ flow_dv_prepare_mtr_tables(struct rte_eth_dev *dev,
 			   uint32_t color_reg_c_idx)
 {
 	struct mlx5_priv *priv = dev->data->dev_private;
-	struct mlx5_ibv_shared *sh = priv->sh;
+	struct mlx5_dev_ctx_shared *sh = priv->sh;
 	struct mlx5_flow_dv_match_params mask = {
 		.size = sizeof(mask.buf),
 	};
